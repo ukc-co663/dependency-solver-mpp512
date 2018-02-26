@@ -11,11 +11,11 @@
   , "version" : "3.2"
   , "size" : 211234
   , "conflicts" : [ "B<3.2" ] }
-, { "name" : "C"
-  , "version" : "1"
-  , "size" : 23
-  , "conflicts" : [ "B" ]
-  , "depends" : [] }
+  , { "name" : "C"
+    , "version" : "1"
+    , "size" : 23
+    , "conflicts" : [ "B" ]
+    , "depends" : [] }
 , { "name" : "D"
   , "version" : "10.3.1"
   , "size" : 88847

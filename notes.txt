@@ -1,0 +1,28 @@
+Constraint  Installed
+1   0   ->  0
+1   1   ->  1
+0   0   ->  1
+0   1   ->  0
+
+
+METHODOLOGY
+
+how to get a nextConfig???
+
+- you've got a current state (initial)
+- you can remove any illegal moves by looping through the curernt state and checking listing the conflicts
+OR
+- you can loop through the constraints checking which packages can be installed
+
+
+
+
+
+TO MAKE
+can install method - what to check?
+    - does the inital clash with the package
+
+
+
+    [ "E=3.0"
+, "A=7.9" ]
