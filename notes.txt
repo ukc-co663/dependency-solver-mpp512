@@ -24,5 +24,3 @@ can install method - what to check?
 
 
 
-    [ "E=3.0"
-, "A=7.9" ]
