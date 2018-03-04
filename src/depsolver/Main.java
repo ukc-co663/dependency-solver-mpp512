@@ -431,10 +431,10 @@ class Main {
 
         if(!currentState.isEmpty()){
             if(currentState.size()>4){
-                if(currentState.get(0).getName().contains("X5") && currentState.get(0).getVersion().equals("0") && currentState.get(1).getName().contains("X1") && currentState.get(1).getVersion().equals("1") && currentState.get(2).getName().contains("X4") && currentState.get(3).getName().contains("X3") && currentState.get(3).getVersion().equals("0") && currentState.get(4).getName().contains("X2") && currentState.get(4).getVersion().contains("0")){
-                    right = true;
-                    printCurrentState(currentState);
-                }
+                //if(currentState.get(0).getName().contains("X5") && currentState.get(0).getVersion().equals("0") && currentState.get(1).getName().contains("X1") && currentState.get(1).getVersion().equals("1") && currentState.get(2).getName().contains("X4") && currentState.get(3).getName().contains("X3") && currentState.get(3).getVersion().equals("0") && currentState.get(4).getName().contains("X2") && currentState.get(4).getVersion().contains("0")){
+                    //right = true;
+                    //printCurrentState(currentState);
+                //}
                 //if(currentState.get(0).getName().contains("A")){
                     // right = true;
                     // printCurrentState(currentState);
@@ -445,21 +445,21 @@ class Main {
             //System.out.println("Current state is not empty");
             do{
                 Package constraint = constsPackages.get(constraintsCounter);
-                if(right){System.out.println("Current constrains is: " + constraint.getStatus() + " " + constraint.getName() + " version " + constraint.getVersion());}
+                //if(right){System.out.println("Current constrains is: " + constraint.getStatus() + " " + constraint.getName() + " version " + constraint.getVersion());}
                 boolean isInstalled = false;
                 int counter = 0;
-                if(right){printCurrentState(currentState);}
+                //if(right){printCurrentState(currentState);}
                 do{
                     Package installedPackage = currentState.get(counter);
-                    if(right){System.out.println("Checking against: " + installedPackage.getName() + " version " + installedPackage.getVersion());}
+                    //if(right){System.out.println("Checking against: " + installedPackage.getName() + " version " + installedPackage.getVersion());}
 
                     if(installedPackage.getName().equals(constraint.getName())){
-                        if(right){System.out.println("Names match");}
+                        //if(right){System.out.println("Names match");}
                         if(installedPackage.getVersion().equals(constraint.getVersion()) || constraint.getVersion().equals("")){
                             isInstalled = true;
                         }else{
-                            if(right){System.out.println("Installed Package version is: " + installedPackage.getVersion());}
-                            if(right){System.out.println("Constraint Package version is: " + constraint.getVersion());}
+                            //if(right){System.out.println("Installed Package version is: " + installedPackage.getVersion());}
+                            //if(right){System.out.println("Constraint Package version is: " + constraint.getVersion());}
                         }
                     }
                     counter++;
@@ -484,10 +484,10 @@ class Main {
 
         //this will be replaced by a return type in the end
         if(isFinal){
-            System.out.println("-----------System is in final state-----------");
+            //System.out.println("-----------System is in final state-----------");
             return true;
         }else{
-            if(right){System.out.println("-----------System does not meet all the constraints-----------");}
+            //if(right){System.out.println("-----------System does not meet all the constraints-----------");}
             return false;
         }
       }
