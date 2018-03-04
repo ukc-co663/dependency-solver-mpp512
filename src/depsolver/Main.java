@@ -116,23 +116,76 @@ class Main {
         return null;
     }
 
+    
+    /**
+     * If i remove this package, is the state still legal
+     * Its not as simple as is this package a dependancy for another package in the state
+     * as that package could be satisfied by a different package in the state.
+     */
+    public boolean checkIfCanRemove(List<Package> state, Package toRemove){
+        // for each package in the state
+        for (Package p : state) {
+            // for each list of dependancies in the package
+            for (List<String> depsStrings : p.getDepends()) {
+                boolean indiDep = false;
+                boolean relysOnPackage = false;
 
-    public List<Package> searchStateForPackage(List<Package> state, Package p){
+                //for each dependancy in the list
+                for(String dep : depsStrings){
+                    String[] trueDepends = understandDependancy(dep); 
+                    
+                    //System.out.println("True Dependss is :" + trueDepends[0] + trueDepends[1] + trueDepends[2]);
+                    //System.out.println("toRemove is :" + toRemove.getName());
+                    //if the package is the same as the one being removed
+                    if(trueDepends[0].equals(toRemove.getName())){
+                        relysOnPackage = true;
+                    }
+                        //System.out.println("relysOnPackage: " + relysOnPackage) ;
+                        if(checkForDependancyInCurrentState(state, trueDepends)){
+                            //System.out.println("Satisfys on :" + trueDepends[0]);
+                            indiDep = true;
+                        }
+                    
+                }
+
+                if(!indiDep && relysOnPackage){
+                    //System.out.println("Something");
+                    return false;
+                }
+                
+            }
+            
+        }
+        return true;
+    }
+
+    public boolean searchStateForPackage(List<Package> state, Package p){
         //printCurrentState(state);
-        ////System.out.println("Package Passed: " + p.getName() + " version " + p.getVersion());
+        //System.out.println("Package Passed: " + p.getName() + " version " + p.getVersion());
         for (int i = 0; i < state.size(); i++) {
-            ////System.out.println("State Package: " + state.get(i).getName() + " version " + state.get(i).getVersion());
+            //System.out.println("State Package: " + state.get(i).getName() + " version " + state.get(i).getVersion());
             
             if(state.get(i).getName().equals(p.getName()) && reduceVersion(state.get(i).getVersion()).equals(reduceVersion(p.getVersion()))){
-                ////System.out.println("Match on: " + state.get(i).getName() + " version " + state.get(i).getVersion());
+                //System.out.println("Match on: " + state.get(i).getName() + " version " + state.get(i).getVersion());
                 state.remove(i);
                 //printCurrentState(state);
-                return state;
+                if(checkIfCanRemove(state, p)){
+                    //printCurrentState(state);
+                    //return state;
+                    return true;
+                }else{
+
+                    state.add(p);
+                    //return null;
+                    return true;
+                }
+                
             }
         }
         //printCurrentState(state);
-        state.add(p);
-        return state;
+        //state.add(p);
+        //return state;
+        return false;
     }
 
     
@@ -163,7 +216,7 @@ class Main {
         if(initsTemp.isEmpty()){
             initsTemp.add(searchRepoForPackage("[]", ""));
         }
-        printCurrentState(initsTemp);
+        //printCurrentState(initsTemp);
         return initsTemp;
     }
 
@@ -272,7 +325,6 @@ class Main {
         //System.out.println("");
         //System.out.println("");
 
-        // checkCurrentStateIsFinal();
         // String[] t = {"B",">=","3.1"};
         
         // if(checkCurrentStateSatisfysPackageDependancies(repo, repo.get(0) )){
@@ -312,28 +364,41 @@ class Main {
         //printCurrentState(initsPackages);
         //printNextConfig(nextConfigs(initsPackages));
         LinkedList<List<Package>> test = itterativeDeepening(initsPackages, constsPackages);
-        printNextConfig(test);
+        //printNextConfig(test);
         stripRouteForCommands(test);
       }
 
       public void printNextConfig(LinkedList<List<Package>> theList){
         if(theList == null){
-            //System.out.println("List is null");
+            System.out.println("List is null");
         }else{
             for (List<Package> state : theList) {
-                //System.out.print("--> [");
+                System.out.print("--> [");
 
                 for(int i = 0; i < state.size(); i++){
                     if(i == state.size()){
-                        //System.out.print("{" + state.get(i).getName() + " " + state.get(i).getVersion() + "}");
+                        System.out.print("{" + state.get(i).getName() + " " + state.get(i).getVersion() + "}");
                     }else{
-                        //System.out.print("{" + state.get(i).getName() + " " + state.get(i).getVersion() + "}");
+                        System.out.print("{" + state.get(i).getName() + " " + state.get(i).getVersion() + "}");
                     }
                 }
-                //System.out.print("] ");
+                System.out.print("] ");
             }
         }
-        //System.out.println(" ");
+        System.out.println(" ");
+      }
+
+      public Package getDifference(List<Package> stage1, List<Package> stage2){
+        // stage2 needs to be the smaller package list
+
+        for(int i = 0 ; i < stage2.size(); i++){
+            if((stage1.get(i).getName().equals(stage2.get(i).getName())) && (stage1.get(i).getVersion().equals(stage2.get(i).getVersion()))){
+
+            }else{
+                return stage1.get(i);
+            }
+        }
+        return stage1.get((stage1.size()-1));
       }
 
       public void stripRouteForCommands(LinkedList<List<Package>> route){
@@ -345,7 +410,8 @@ class Main {
                 List<Package> stageLeft = route.get(i-1);
                 if(stageRight.size()>stageLeft.size()){
                     ////System.out.print("[-" + stageRight.get(stageRight.size()-1).getName() + "=" + stageRight.get(stageRight.size()-1).getVersion() + "]");
-                    commands.add("-" + stageRight.get(stageRight.size()-1).getName() + "=" + stageRight.get(stageRight.size()-1).getVersion());
+                    Package toRemoveRef = getDifference(stageRight, stageLeft);
+                    commands.add("-" + toRemoveRef.getName() + "=" + toRemoveRef.getVersion());
                 }else{
                     ////System.out.print("[+" + stageLeft.get(stageLeft.size()-1).getName() + "=" + stageLeft.get(stageLeft.size()-1).getVersion() + "]");
                     commands.add("+" + stageLeft.get(stageLeft.size()-1).getName() + "=" + stageLeft.get(stageLeft.size()-1).getVersion());
@@ -361,21 +427,40 @@ class Main {
       public boolean checkCurrentStateMeetsConstraints(List<Package> currentState){
         boolean isFinal = true;
         int constraintsCounter = 0;
+        boolean right = false;
 
         if(!currentState.isEmpty()){
+            if(currentState.size()>4){
+                if(currentState.get(0).getName().contains("X5") && currentState.get(0).getVersion().equals("0") && currentState.get(1).getName().contains("X1") && currentState.get(1).getVersion().equals("1") && currentState.get(2).getName().contains("X4") && currentState.get(3).getName().contains("X3") && currentState.get(3).getVersion().equals("0") && currentState.get(4).getName().contains("X2") && currentState.get(4).getVersion().contains("0")){
+                    right = true;
+                    printCurrentState(currentState);
+                }
+                //if(currentState.get(0).getName().contains("A")){
+                    // right = true;
+                    // printCurrentState(currentState);
+                //}
+            }
+            //right = true;
+            //printCurrentState(currentState);
             //System.out.println("Current state is not empty");
             do{
                 Package constraint = constsPackages.get(constraintsCounter);
-                //System.out.println("Current constrains is: " + constraint.getStatus() + " " + constraint.getName());
+                if(right){System.out.println("Current constrains is: " + constraint.getStatus() + " " + constraint.getName() + " version " + constraint.getVersion());}
                 boolean isInstalled = false;
                 int counter = 0;
-                printCurrentState(currentState);
+                if(right){printCurrentState(currentState);}
                 do{
                     Package installedPackage = currentState.get(counter);
-                    //System.out.println("Checking against: " + installedPackage.getName());
+                    if(right){System.out.println("Checking against: " + installedPackage.getName() + " version " + installedPackage.getVersion());}
 
                     if(installedPackage.getName().equals(constraint.getName())){
-                        isInstalled = true;
+                        if(right){System.out.println("Names match");}
+                        if(installedPackage.getVersion().equals(constraint.getVersion()) || constraint.getVersion().equals("")){
+                            isInstalled = true;
+                        }else{
+                            if(right){System.out.println("Installed Package version is: " + installedPackage.getVersion());}
+                            if(right){System.out.println("Constraint Package version is: " + constraint.getVersion());}
+                        }
                     }
                     counter++;
                 }while(!isInstalled && counter < currentState.size());
@@ -399,51 +484,10 @@ class Main {
 
         //this will be replaced by a return type in the end
         if(isFinal){
-            //System.out.println("-----------System is in final state-----------");
+            System.out.println("-----------System is in final state-----------");
             return true;
         }else{
-            //System.out.println("-----------System does not meet all the constraints-----------");
-            return false;
-        }
-      }
-
-      public boolean checkCurrentStateIsFinal(){
-        boolean isFinal = true;
-        int constraintsCounter = 0;
-
-        do{
-            Constraint constraint = consts.get(constraintsCounter);
-            //System.out.println("Current constrains is: " + constraint.getState() + " " + constraint.getName());
-            boolean isInstalled = false;
-            int counter = 0;
-            
-            do{
-                Install installedPackage = inits.get(counter);
-                //System.out.println("Checking against: " + installedPackage.getName());
-
-                if(installedPackage.getName().equals(constraint.getName())){
-                    isInstalled = true;
-                }
-                counter++;
-            }while(!isInstalled && counter < inits.size());
-
-            if(isInstalled){
-                if(constraint.getState().equals("-")){
-                    isFinal=false;
-                }else{constraintsCounter++;}
-            }else{
-                if(constraint.getState().equals("-")){
-                    constraintsCounter++;
-                }else{isFinal=false;}
-            }
-        }while(isFinal && constraintsCounter < consts.size());
-
-        //this will be replaced by a return type in the end
-        if(isFinal){
-            //System.out.println("-----------System is in final state-----------");
-            return true;
-        }else{
-            //System.out.println("-----------System does not meet all the constraints-----------");
+            if(right){System.out.println("-----------System does not meet all the constraints-----------");}
             return false;
         }
       }
@@ -592,9 +636,9 @@ class Main {
     }
 
     public void printCurrentState(List<Package> currentState){
-        //System.out.println("                                        Current state is");
+        System.out.println("                                        Current state is");
         for (Package p : currentState) {
-            //System.out.println("                                        Package: " + p.getName() + " version " + p.getVersion());
+            System.out.println("                                        Package: " + p.getName() + " version " + p.getVersion());
         }
     }
 
@@ -856,39 +900,54 @@ class Main {
         
         for (Package p : repo) { //for each package in the repository
             List<Package> nextConfig = new ArrayList(currentState);
-            printCurrentState(nextConfig);
-            //System.out.println("");
-            //System.out.println("1. Checking current state satisfys Package " + p.getName() + " version " + p.getVersion() + " dependancy's");
-            if(checkCurrentStateSatisfysPackageDependancies(currentState, p)){ //does the current state satisfy the new package's dependancys
+            //printCurrentState(nextConfig);
+            if(searchStateForPackage(nextConfig, p) == false ){
                 //System.out.println("");
-                //System.out.println("  2. Checking whether the current state accepts " + p.getName() + " version " + p.getVersion() );
-                if(!(checkCurrentStatesConflictsForPackage(currentState, p))){ //does the new package conflict with the current state
+                //System.out.println("1. Checking current state satisfys Package " + p.getName() + " version " + p.getVersion() + " dependancy's");
+                if(checkCurrentStateSatisfysPackageDependancies(currentState, p)){ //does the current state satisfy the new package's dependancys
                     //System.out.println("");
-                    //System.out.println("    3. Checking Package " + p.getName() + " version " + p.getVersion() + " has conflicts in the current state");
-                    if(!(checkPackageConflictsExistInCurrentState(currentState, p))){ //check the new package's conflict's do not exist in the current state
-                        
-                        //System.out.println("      4. Package " + p.getName() + " version " + p.getVersion() + " has been added/removed");
+                    //System.out.println("  2. Checking whether the current state accepts " + p.getName() + " version " + p.getVersion() );
+                    if(!(checkCurrentStatesConflictsForPackage(currentState, p))){ //does the new package conflict with the current state
                         //System.out.println("");
-                        nextConfig = searchStateForPackage(nextConfig, p); // check that the new state isnt already in the list, if it is remove it rather than add it.
+                        //System.out.println("    3. Checking Package " + p.getName() + " version " + p.getVersion() + " has conflicts in the current state");
+                        if(!(checkPackageConflictsExistInCurrentState(currentState, p))){ //check the new package's conflict's do not exist in the current state
+                            
+                            //System.out.println("      4. Package " + p.getName() + " version " + p.getVersion() + " has been added/removed");
+                            //System.out.println("");
+                            //System.out.println(nextConfig.size());
+                            //List<Package> temp = searchStateForPackage(nextConfig, p);
+                            //System.out.println(nextConfig.size());
+                            //if(temp != null){
+
+                                //System.out.println("Edit nextConfig");
+                                //nextConfig = temp;
+                            //}else{
+                                //System.out.println("Not safe to remove package");
+                            //}
+                            //nextConfig = searchStateForPackage(nextConfig, p); // check that the new package isnt already in the list, if it is remove it rather than add it.
+                            nextConfig.add(p);
+                        }else{
+                            //System.out.println("    3. Package " + p.getName() + " version " + p.getVersion() + " conflicts with a package in the current state");
+                            //System.out.println("");
+                            //return null;    
+                        }
                     }else{
-                        //System.out.println("    3. Package " + p.getName() + " version " + p.getVersion() + " conflicts with a package in the current state");
+                        //System.out.println("  2. Package " + p.getName() + " version " + p.getVersion() + " conflicts with the current state");
                         //System.out.println("");
                         //return null;    
                     }
                 }else{
-                    //System.out.println("  2. Package " + p.getName() + " version " + p.getVersion() + " conflicts with the current state");
+                    //System.out.println("1. Current State does not contain the dependancies for " + p.getName() + " version " + p.getVersion());
                     //System.out.println("");
-                    //return null;    
+                    //return null;
                 }
             }else{
-                //System.out.println("1. Current State does not contain the dependancies for " + p.getName() + " version " + p.getVersion());
-                //System.out.println("");
-                //return null;
+            //System.out.println("##########################################################################it was true####################################");
+            //System.out.println(nextConfig.size());
+            //System.out.println(currentState.size());
             }
-            ////System.out.println(nextConfig.size());
-            ////System.out.println(currentState.size());
             if(nextConfig.size() != currentState.size()){
-                printCurrentState(nextConfig);
+                //printCurrentState(nextConfig);
                 //System.out.println("=========================NEXTCONF DIFF LENGTH==========================");
                 nextConfigList.add(nextConfig);
             }
@@ -925,7 +984,7 @@ class Main {
     }
 
     public LinkedList<List<Package>> itterativeDeepening(List<Package> currentState, List<Package> constraints){
-        for(int depth = 1; depth < 15 ; depth++){
+        for(int depth = 1; depth < 10 ; depth++){
             //System.out.println("");
             //System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Current Depth is " + depth);
             LinkedList<List<Package>> finalState = depthFirst(currentState, constraints, depth);
